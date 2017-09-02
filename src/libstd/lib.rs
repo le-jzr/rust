@@ -351,6 +351,7 @@ extern crate core as __core;
 #[macro_use]
 #[macro_reexport(vec, format)]
 extern crate alloc;
+#[cfg(feature = "alloc_system")]
 extern crate alloc_system;
 extern crate std_unicode;
 extern crate libc;
