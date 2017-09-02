@@ -8,11 +8,15 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-pub type ThreadLocalKey = usize;
 
-pub trait ThreadLocal: Sync {
-    unsafe fn create(&self, dtor: Option<unsafe extern fn(*mut u8)>) -> ThreadLocalKey;
-    unsafe fn set(&self, key: ThreadLocalKey, value: *mut u8);
-    unsafe fn get(&self, key: ThreadLocalKey) -> *mut u8;
-    unsafe fn destroy(&self, key: ThreadLocalKey);
+use io;
+
+pub trait Stdin: Sync {
+    fn read(&self, data: &mut [u8]) -> io::Result<usize>;
 }
+
+pub trait Stdout: Sync {
+    fn write(&self, data: &[u8]) -> io::Result<()>;
+    fn flush(&self) -> io::Result<()>;
+}
+

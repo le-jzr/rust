@@ -24,5 +24,4 @@ pub fn init() {
 }
 
 pub unsafe fn cleanup() {
-    unimplemented!()
 }

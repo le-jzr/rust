@@ -8,36 +8,29 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-/// The underlying OsString/OsStr implementation on Unix systems: just
-/// a `Vec<u8>`/`[u8]`.
-
-// FIXME: This is duplicated from redox and unix. It should probably be shared.
-
 use borrow::Cow;
 use fmt;
 use str;
 use mem;
-use sys_common::{AsInner, IntoInner};
-use std_unicode::lossy::Utf8Lossy;
 
 #[derive(Clone, Hash)]
 pub struct Buf {
-    pub inner: Vec<u8>
+    pub inner: String
 }
 
 pub struct Slice {
-    pub inner: [u8]
+    pub inner: str
 }
 
 impl fmt::Debug for Slice {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Debug::fmt(&Utf8Lossy::from_bytes(&self.inner), formatter)
+        fmt::Debug::fmt(&self.inner, formatter)
     }
 }
 
 impl fmt::Display for Slice {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Display::fmt(&Utf8Lossy::from_bytes(&self.inner), formatter)
+        fmt::Display::fmt(&self.inner, formatter)
     }
 }
 
@@ -53,28 +46,15 @@ impl fmt::Display for Buf {
     }
 }
 
-impl IntoInner<Vec<u8>> for Buf {
-    fn into_inner(self) -> Vec<u8> {
-        self.inner
-    }
-}
-
-impl AsInner<[u8]> for Buf {
-    fn as_inner(&self) -> &[u8] {
-        &self.inner
-    }
-}
-
-
 impl Buf {
     pub fn from_string(s: String) -> Buf {
-        Buf { inner: s.into_bytes() }
+        Buf { inner: s }
     }
 
     #[inline]
     pub fn with_capacity(capacity: usize) -> Buf {
         Buf {
-            inner: Vec::with_capacity(capacity)
+            inner: String::with_capacity(capacity)
         }
     }
 
@@ -108,54 +88,51 @@ impl Buf {
     }
 
     pub fn into_string(self) -> Result<String, Buf> {
-        String::from_utf8(self.inner).map_err(|p| Buf { inner: p.into_bytes() } )
+        Ok(self.inner)
     }
 
     pub fn push_slice(&mut self, s: &Slice) {
-        self.inner.extend_from_slice(&s.inner)
+        self.inner.push_str(&s.inner)
     }
 
     #[inline]
     pub fn into_box(self) -> Box<Slice> {
-        unsafe { mem::transmute(self.inner.into_boxed_slice()) }
+        unsafe { mem::transmute(self.inner.into_boxed_str()) }
     }
 
     #[inline]
     pub fn from_box(boxed: Box<Slice>) -> Buf {
-        let inner: Box<[u8]> = unsafe { mem::transmute(boxed) };
-        Buf { inner: inner.into_vec() }
+        let inner: Box<str> = unsafe { mem::transmute(boxed) };
+        Buf { inner: inner.into_string() }
     }
 }
 
 impl Slice {
-    fn from_u8_slice(s: &[u8]) -> &Slice {
+
+    pub fn from_str(s: &str) -> &Slice {
         unsafe { mem::transmute(s) }
     }
 
-    pub fn from_str(s: &str) -> &Slice {
-        Slice::from_u8_slice(s.as_bytes())
-    }
-
     pub fn to_str(&self) -> Option<&str> {
-        str::from_utf8(&self.inner).ok()
+        Some(&self.inner)
     }
 
     pub fn to_string_lossy(&self) -> Cow<str> {
-        String::from_utf8_lossy(&self.inner)
+        Cow::Borrowed(&self.inner)
     }
 
     pub fn to_owned(&self) -> Buf {
-        Buf { inner: self.inner.to_vec() }
+        Buf { inner: self.inner.to_string() }
     }
 
     #[inline]
     pub fn into_box(&self) -> Box<Slice> {
-        let boxed: Box<[u8]> = self.inner.into();
+        let boxed: Box<str> = self.inner.into();
         unsafe { mem::transmute(boxed) }
     }
 
     pub fn empty_box() -> Box<Slice> {
-        let boxed: Box<[u8]> = Default::default();
+        let boxed: Box<str> = Default::default();
         unsafe { mem::transmute(boxed) }
     }
 }

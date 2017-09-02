@@ -13,6 +13,12 @@ use marker::PhantomData;
 use ffi::OsString;
 use iter::{Iterator, ExactSizeIterator, DoubleEndedIterator};
 
+use sync::atomic::{AtomicIsize, AtomicUsize, Ordering};
+
+use sys::ext;
+use ptr::null;
+use mem;
+
 pub struct Args {
     iter: vec::IntoIter<OsString>,
     _dont_send_or_sync_me: PhantomData<*mut ()>,
@@ -38,17 +44,30 @@ impl DoubleEndedIterator for Args {
     fn next_back(&mut self) -> Option<OsString> { self.iter.next_back() }
 }
 
-
-
+static ARGC: AtomicIsize = AtomicIsize::new(0);
+static ARGV: AtomicUsize = AtomicUsize::new(0);
 
 pub fn args() -> Args {
-    unimplemented!()
+    let argc = ARGC.load(Ordering::Acquire);
+    let argv = if argc == 0 {
+        null()
+    } else {
+        ARGV.load(Ordering::Relaxed) as *const *const u8
+    };
+
+    let v: Vec<String> = unsafe { ext::ARGS.try_get().expect("os::dynamic::ARGS are not initialized").args(argc, argv) };
+    let v: Vec<OsString> = unsafe { mem::transmute(v) };
+
+    Args {
+        iter: v.into_iter(),
+        _dont_send_or_sync_me: PhantomData,
+    }
 }
 
-pub fn init(_argc: isize, _argv: *const *const u8) {
-    unimplemented!()
+pub unsafe fn init(argc: isize, argv: *const *const u8) {
+    ARGV.store(argv as usize, Ordering::Relaxed);
+    ARGC.store(argc, Ordering::Release);
 }
 
 pub unsafe fn cleanup() {
-    unimplemented!()
 }

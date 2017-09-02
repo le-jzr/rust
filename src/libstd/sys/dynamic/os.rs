@@ -11,10 +11,7 @@
 use io;
 use path::{self, PathBuf};
 use error::Error as StdError;
-use iter;
-use slice;
 use ffi::{OsString, OsStr};
-use sys::ext::{OsStrExt, OsStringExt};
 use vec;
 use fmt;
 use marker::PhantomData;
@@ -54,49 +51,30 @@ pub fn chdir(p: &path::Path) -> io::Result<()> {
     unimplemented!()
 }
 
-// FIXME: Duplicated.
+
 pub struct SplitPaths<'a> {
-    iter: iter::Map<slice::Split<'a, u8, fn(&u8) -> bool>,
-                    fn(&'a [u8]) -> PathBuf>,
+    __todo: &'a (),
 }
 
 pub fn split_paths(unparsed: &OsStr) -> SplitPaths {
-    fn bytes_to_path(b: &[u8]) -> PathBuf {
-        PathBuf::from(<OsStr as OsStrExt>::from_bytes(b))
-    }
-    fn is_colon(b: &u8) -> bool { *b == b':' }
-    let unparsed = unparsed.as_bytes();
     SplitPaths {
-        iter: unparsed.split(is_colon as fn(&u8) -> bool)
-                      .map(bytes_to_path as fn(&[u8]) -> PathBuf)
+        __todo: &(),
     }
 }
 
 impl<'a> Iterator for SplitPaths<'a> {
     type Item = PathBuf;
-    fn next(&mut self) -> Option<PathBuf> { self.iter.next() }
-    fn size_hint(&self) -> (usize, Option<usize>) { self.iter.size_hint() }
+    fn next(&mut self) -> Option<PathBuf> { unimplemented!() }
+    fn size_hint(&self) -> (usize, Option<usize>) { unimplemented!() }
 }
 
-// FIXME: Duplicated.
 #[derive(Debug)]
 pub struct JoinPathsError;
 
 pub fn join_paths<I, T>(paths: I) -> Result<OsString, JoinPathsError>
     where I: Iterator<Item=T>, T: AsRef<OsStr>
 {
-    let mut joined = Vec::new();
-    let sep = b':';
-
-    for (i, path) in paths.enumerate() {
-        let path = path.as_ref().as_bytes();
-        if i > 0 { joined.push(sep) }
-        if path.contains(&sep) {
-            return Err(JoinPathsError)
-        }
-        joined.extend_from_slice(path);
-    }
-    Ok(OsStringExt::from_vec(joined))
+    unimplemented!()
 }
 
 impl fmt::Display for JoinPathsError {
