@@ -12,6 +12,7 @@ use alloc::boxed::FnBox;
 use libc;
 use sys::stack_overflow;
 
+#[allow(dead_code)]
 pub unsafe fn start_thread(main: *mut libc::c_void) {
     // Next, set up our stack overflow handler which may get triggered if we run
     // out of stack.

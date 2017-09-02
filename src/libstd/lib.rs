@@ -314,6 +314,7 @@
 #![feature(vec_push_all)]
 #![feature(doc_cfg)]
 #![cfg_attr(test, feature(update_panic_count))]
+#![cfg_attr(feature = "dynamic_sys", feature(drop_types_in_const))]
 
 #![default_lib_allocator]
 

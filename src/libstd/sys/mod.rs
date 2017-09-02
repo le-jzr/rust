@@ -34,18 +34,21 @@
 
 pub use self::imp::*;
 
-#[cfg(unix)]
+#[cfg(all(unix, not(feature = "dynamic_sys")))]
 #[path = "unix/mod.rs"]
 mod imp;
 
-#[cfg(windows)]
+#[cfg(all(windows, not(feature = "dynamic_sys")))]
 #[path = "windows/mod.rs"]
 mod imp;
 
-#[cfg(target_os = "redox")]
+#[cfg(all(target_os = "redox", not(feature = "dynamic_sys")))]
 #[path = "redox/mod.rs"]
 mod imp;
 
+#[cfg(feature = "dynamic_sys")]
+#[path = "dynamic/mod.rs"]
+mod imp;
 
 // Import essential modules from both platforms when documenting.
 

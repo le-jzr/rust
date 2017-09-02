@@ -20,6 +20,10 @@ pub use sys::ext as unix;
 #[stable(feature = "rust1", since = "1.0.0")]
 pub use sys::ext as windows;
 
+#[cfg(feature = "dynamic_sys")]
+#[unstable(issue = "0000", feature = "dynamic_sys")]
+pub use sys::ext as dynamic;
+
 #[cfg(dox)]
 #[stable(feature = "rust1", since = "1.0.0")]
 pub use sys::unix_ext as unix;
